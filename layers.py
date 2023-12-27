@@ -8,7 +8,8 @@ class TransformerEncoder(nn.Module):
     def __init__(self, feats:int, mlp_hidden:int, head:int=8, dropout:float=0.):
         super(TransformerEncoder, self).__init__()
         self.la1 = nn.LayerNorm(feats)
-        self.msa = MultiHeadSelfAttention(feats, head=head, dropout=dropout)
+        self.msa = nn.MultiheadAttention(embed_dim=feats, num_heads=head, dropout=dropout)
+        # self.msa = MultiHeadSelfAttention(feats, head=head, dropout=dropout)
         self.la2 = nn.LayerNorm(feats)
         self.mlp = nn.Sequential(
             nn.Linear(feats, mlp_hidden),
@@ -18,10 +19,14 @@ class TransformerEncoder(nn.Module):
             nn.GELU(),
             nn.Dropout(dropout),
         )
-
+        
+        
     def forward(self, x):
-        out = self.msa(self.la1(x)) + x
-        out = self.mlp(self.la2(out)) + out
+        x = x.transpose(0, 1)  # nn.MultiheadAttention expects input as (seq_len, batch, features)
+        attn_output, _ = self.msa(x, x, x)  # query, key, value are all the same for self-attention
+        out = attn_output.transpose(0, 1)  # transpose back to original shape
+        out = self.la1(out) + x.transpose(0, 1)  # Residual connection
+        out = self.mlp(self.la2(out)) + out  # Another layer and residual connection
         return out
 
 

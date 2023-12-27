@@ -4,6 +4,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install git+https://github.com/ildoonet/pytorch-gradual-warmup-lr.git
 pip install git+https://github.com/PyTorchLightning/pytorch-lightning
+pip install numpy==1.23.5
 # git clone https://github.com/DeepVoltaire/AutoAugment.git
 # cd AutoAugment
 # git checkout 17d718251f25c0d9413bf30f91b523907924f33a

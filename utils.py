@@ -110,7 +110,7 @@ def get_dataset(args):
     return train_ds, test_ds
 
 def get_experiment_name(args):
-    experiment_name = f"{args.model_name}_{args.dataset}"
+    experiment_name = f"Gy_{args.model_name}original_{args.dataset}_{args.weight_decay}_{args.dropout}"
     if args.autoaugment:
         experiment_name+="_aa"
     if args.label_smoothing:
