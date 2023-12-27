@@ -13,7 +13,7 @@ from utils import get_model, get_dataset, get_experiment_name, get_criterion
 from da import CutMix, MixUp
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--api-key", default='wH8Pa2tJhhCHcWuKisA39jM9u', help="API Key for Comet.ml")
+parser.add_argument("--api-key", default=None, help="API Key for Comet.ml")
 parser.add_argument("--dataset", default="c100", type=str, help="[c10, c100, svhn]")
 parser.add_argument("--num-classes", default=100, type=int)
 parser.add_argument("--model-name", default="vit", help="[vit]", type=str)
