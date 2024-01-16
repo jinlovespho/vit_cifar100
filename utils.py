@@ -23,14 +23,14 @@ def get_model(args):
         net = ViT(
             args.in_c, 
             args.num_classes, 
-            img_size=args.size, 
-            patch=args.patch, 
+            img_size=args.size,                 # 32
+            patch=args.patch,                   # 8           즉 하나의 patch 는 (3,4,4) 이다.  총 64 patch 존재 O
             dropout=args.dropout, 
-            mlp_hidden=args.mlp_hidden,
-            num_layers=args.num_layers,
-            hidden=args.hidden,
-            head=args.head,
-            is_cls_token=args.is_cls_token
+            mlp_hidden=args.mlp_hidden,         # 384
+            num_layers=args.num_layers,         # 7
+            hidden=args.hidden,                 # 384         transformer input: (1024, 3, 32, 32) -> (1024, 64, 3, 4, 4) -> (1024, 64, 48) -> (1024, 64, 384)
+            head=args.head,                     # 12
+            is_cls_token=args.is_cls_token      
             )
     else:
         raise NotImplementedError(f"{args.model_name} is not implemented yet...")
@@ -73,7 +73,7 @@ def get_transform(args):
     
 
 def get_dataset(args):
-    root = "data"
+    root = "/home/kwangrok/Downloads/VS_CODE/data"
     if args.dataset == "c10":
         args.in_c = 3
         args.num_classes=10
@@ -110,7 +110,7 @@ def get_dataset(args):
     return train_ds, test_ds
 
 def get_experiment_name(args):
-    experiment_name = f"Gy_{args.model_name}_{args.lr}_{args.batch_size}_{args.weight_decay}_{args.head}_original"
+    experiment_name = f"pho_{args.experiment_memo}_{args.model_name}_{args.lr}_{args.batch_size}_{args.weight_decay}_{args.head}_original"
     if args.autoaugment:
         experiment_name+="_aa"
     if args.label_smoothing:

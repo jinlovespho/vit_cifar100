@@ -12,12 +12,15 @@ import numpy as np
 from utils import get_model, get_dataset, get_experiment_name, get_criterion
 from da import CutMix, MixUp
 
+# JINLOVESPHO
+import matplotlib.pyplot as plt 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--api-key", default=None, help="API Key for Comet.ml")
 parser.add_argument("--dataset", default="c100", type=str, help="[c10, c100, svhn]")
 parser.add_argument("--num-classes", default=100, type=int)
 parser.add_argument("--model-name", default="vit", help="[vit]", type=str)
-parser.add_argument("--patch", default=8, type=int)
+parser.add_argument("--patch", default=8, type=int, help="number of patches in one row(col). not size of patch")
 parser.add_argument("--batch-size", default=128, type=int)
 parser.add_argument("--eval-batch-size", default=1024, type=int)
 parser.add_argument("--lr", default=5e-4, type=float)
@@ -40,11 +43,13 @@ parser.add_argument("--mixup", action="store_true")
 parser.add_argument("--dropout", default=0, type=float)
 parser.add_argument("--head", default=12, type=int)
 parser.add_argument("--num-layers", default=7, type=int)
-parser.add_argument("--hidden", default=384, type=int)
+parser.add_argument("--hidden", default=384, type=int, help='transformer input patch embedding dimension')
 parser.add_argument("--mlp-hidden", default=384, type=int)
 parser.add_argument("--off-cls-token", action="store_true")
 parser.add_argument("--seed", default=42, type=int)
 parser.add_argument("--project-name", default="VisionTransformer")
+parser.add_argument('--experiment-memo', default='memo')
+parser.add_argument('--attntion-method', default='')
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
@@ -58,7 +63,13 @@ if not args.gpus:
 if args.mlp_hidden != args.hidden*4:
     print(f"[INFO] In original paper, mlp_hidden(CURRENT:{args.mlp_hidden}) is set to: {args.hidden*4}(={args.hidden}*4)")
 
+# breakpoint()
+
 train_ds, test_ds = get_dataset(args)
+
+plt.imsave('./img1.png', train_ds.data[0])  # train_ds.data[0] : (32,32,3)
+
+
 train_dl = torch.utils.data.DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True)
 test_dl = torch.utils.data.DataLoader(test_ds, batch_size=args.eval_batch_size, num_workers=args.num_workers, pin_memory=True)
 
@@ -66,6 +77,7 @@ class Net(pl.LightningModule):
     def __init__(self, hparams):
         super(Net, self).__init__()
         # self.hparams = hparams
+        breakpoint()
         self.hparams.update(vars(hparams))
         self.model = get_model(hparams)
         self.criterion = get_criterion(args)
@@ -83,8 +95,9 @@ class Net(pl.LightningModule):
         self.base_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.hparams.max_epochs, eta_min=self.hparams.min_lr)
         self.scheduler = warmup_scheduler.GradualWarmupScheduler(self.optimizer, multiplier=1., total_epoch=self.hparams.warmup_epoch, after_scheduler=self.base_scheduler)
         return [self.optimizer], [self.scheduler]
-
+    
     def training_step(self, batch, batch_idx):
+        # breakpoint()
         img, label = batch
         if self.hparams.cutmix or self.hparams.mixup:
             if self.hparams.cutmix:
@@ -96,10 +109,13 @@ class Net(pl.LightningModule):
                     img, label, rand_label, lambda_ = img, label, torch.zeros_like(label), 1.
             out = self.model(img)
             loss = self.criterion(out, label)*lambda_ + self.criterion(out, rand_label)*(1.-lambda_)
+        
+        # 실행 O
         else:
-            out = self(img)
+            out = self.model(img)               # self(img) 해도 동일 
             loss = self.criterion(out, label)
 
+        # 실행 O
         if not self.log_image_flag and not self.hparams.dry_run:
             self.log_image_flag = True
             self._log_image(img.clone().detach().cpu())
@@ -146,6 +162,8 @@ if __name__ == "__main__":
             name=experiment_name
         )
         refresh_rate = 1
+    
+    # breakpoint()
     net = Net(args)
     trainer = pl.Trainer(precision=args.precision,fast_dev_run=args.dry_run, gpus=args.gpus, benchmark=args.benchmark, logger=logger, max_epochs=args.max_epochs, weights_summary="full", progress_bar_refresh_rate=refresh_rate)
     trainer.fit(model=net, train_dataloader=train_dl, val_dataloaders=test_dl)

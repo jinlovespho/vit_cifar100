@@ -9,7 +9,7 @@ class ViT(nn.Module):
         super(ViT, self).__init__()
         # hidden=384
 
-        self.patch = patch # number of patches in one row(or col)
+        self.patch = patch # number of patches in one row(or col)     # NOT PATCH SIZE !!! 이해 O
         self.is_cls_token = is_cls_token
         self.patch_size = img_size//self.patch
         f = (img_size//self.patch)**2*3 # 48 # patch vec length
@@ -24,25 +24,34 @@ class ViT(nn.Module):
             nn.LayerNorm(hidden),
             nn.Linear(hidden, num_classes) # for cls_token
         )
-
-
+        
     def forward(self, x):
         out = self._to_words(x)
         out = self.emb(out)
         if self.is_cls_token:
             out = torch.cat([self.cls_token.repeat(out.size(0),1,1), out],dim=1)
         out = out + self.pos_emb
+        
+        # JINLOVESPHO
+        # out = self.compressed_encoder(out)
+        
         out = self.enc(out)
         if self.is_cls_token:
-            out = out[:,0]
+            out = out[:,0]          # cls token 하나만 꺼내온 것 .
         else:
             out = out.mean(1)
-        out = self.fc(out)
+        out = self.fc(out)          # classificatioon layer = nn.Linear(384 100) for 100 class classification 
         return out
+
+    # def compressed_encoder(self, x: torch.Tensor ):
+    #     pass
+        
 
     def _to_words(self, x):
         """
-        (b, c, h, w) -> (b, n, f)
+        (b, c, h, w) -> (b, n, f)   where). n: #  of patches in one image
+                                            f: # of pixels in one patch 
+        self.patch_size = 하나의 patch의 H,W 크기를 의미. 
         """
         out = x.unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size).permute(0,2,3,4,5,1)
         out = out.reshape(x.size(0), self.patch**2 ,-1)
