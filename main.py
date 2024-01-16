@@ -49,7 +49,7 @@ parser.add_argument("--off-cls-token", action="store_true")
 parser.add_argument("--seed", default=42, type=int)
 parser.add_argument("--project-name", default="VisionTransformer")
 parser.add_argument('--experiment-memo', default='memo')
-parser.add_argument('--attntion-method', default='')
+parser.add_argument('--attention_method', default='vanilla')
 args = parser.parse_args()
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
@@ -69,7 +69,6 @@ train_ds, test_ds = get_dataset(args)
 
 plt.imsave('./img1.png', train_ds.data[0])  # train_ds.data[0] : (32,32,3)
 
-
 train_dl = torch.utils.data.DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True)
 test_dl = torch.utils.data.DataLoader(test_ds, batch_size=args.eval_batch_size, num_workers=args.num_workers, pin_memory=True)
 
@@ -77,7 +76,7 @@ class Net(pl.LightningModule):
     def __init__(self, hparams):
         super(Net, self).__init__()
         # self.hparams = hparams
-        breakpoint()
+        # breakpoint()
         self.hparams.update(vars(hparams))
         self.model = get_model(hparams)
         self.criterion = get_criterion(args)

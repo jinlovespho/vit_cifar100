@@ -30,7 +30,8 @@ def get_model(args):
             num_layers=args.num_layers,         # 7
             hidden=args.hidden,                 # 384         transformer input: (1024, 3, 32, 32) -> (1024, 64, 3, 4, 4) -> (1024, 64, 48) -> (1024, 64, 384)
             head=args.head,                     # 12
-            is_cls_token=args.is_cls_token      
+            is_cls_token=args.is_cls_token,
+            attn_method = args.attention_method 
             )
     else:
         raise NotImplementedError(f"{args.model_name} is not implemented yet...")

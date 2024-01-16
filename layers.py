@@ -6,10 +6,10 @@ import torchsummary
 
 # authors attention
 class TransformerEncoder(nn.Module):
-    def __init__(self, feats:int, mlp_hidden:int, head:int=8, dropout:float=0.):
+    def __init__(self, feats:int, mlp_hidden:int, head:int=8, dropout:float=0., attn_method:str='vanilla'):
         super(TransformerEncoder, self).__init__()
         self.la1 = nn.LayerNorm(feats)
-        self.msa = MultiHeadSelfAttention(feats, head=head, dropout=dropout)
+        self.msa = MultiHeadSelfAttention(feats, head=head, dropout=dropout, attn_method=attn_method)
         self.la2 = nn.LayerNorm(feats)
         self.mlp = nn.Sequential(
             nn.Linear(feats, mlp_hidden),
@@ -19,6 +19,7 @@ class TransformerEncoder(nn.Module):
             nn.GELU(),
             nn.Dropout(dropout),
         )
+        
 
     def forward(self, x):
         out = self.msa(self.la1(x)) + x
@@ -55,7 +56,7 @@ class TransformerEncoder(nn.Module):
 
 
 class MultiHeadSelfAttention(nn.Module):
-    def __init__(self, feats:int, head:int=8, dropout:float=0.):
+    def __init__(self, feats:int, head:int=8, dropout:float=0. , attn_method :str='vanilla'):
         super(MultiHeadSelfAttention, self).__init__()
         self.head = head
         self.feats = feats
@@ -126,18 +127,37 @@ class MultiHeadSelfAttention(nn.Module):
 
         self.o = nn.Linear(feats, feats)
         self.dropout = nn.Dropout(dropout)
-
+        
+        # breakpoint()
+        
+        if attn_method == 'vanilla':
+            self.attn_method = self.vanilla_attention
+        
+        elif attn_method == 'dim_wise':
+            self.attn_method = self.non_overlapping_head_attention_token_wise
+            
+        elif attn_method == 'token_wise':
+            self.attn_method = self.non_overlapping_head_attention_token_wise
+                    
+        
     def forward(self, x):
         
         # 택 1
         # o = self.vanilla_attention(x)
         # o = self.non_overlapping_head_attention_token_wise(x)
         # o = self.non_overlapping_head_attention_dimension_wise(x)
-        o = self.non_overlapping_head_attention_dimension_wise_3dk(x)
+        # o = self.non_overlapping_head_attention_dimension_wise_3dk(x)
         
-        return o
+        # breakpoint()
+        
+        out = self.attn_method(x)
+        
+        return out 
     
     def vanilla_attention(self, x):
+        
+        # breakpoint() 
+        
         b, n, f = x.size()
         q = self.q(x).view(b, n, self.head, self.feats//self.head).transpose(1,2)       # self.q(x) 의 output에 .view
         k = self.k(x).view(b, n, self.head, self.feats//self.head).transpose(1,2)
