@@ -107,7 +107,6 @@ def get_dataset(args):
 
     else:
         raise NotImplementedError(f"{args.dataset} is not implemented yet.")
-    
     return train_ds, test_ds
 
 def get_experiment_name(args):
@@ -119,7 +118,7 @@ def get_experiment_name(args):
     if args.rcpaste:
         experiment_name+="_rc"
     if args.cutmix:
-        experiment_name+="_cm"
+        experiment_name+="_cm"  
     if args.mixup:
         experiment_name+="_mu"
     if args.off_cls_token:

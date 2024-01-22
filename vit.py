@@ -53,6 +53,7 @@ class ViT(nn.Module):
                                             f: # of pixels in one patch 
         self.patch_size = 하나의 patch의 H,W 크기를 의미. 
         """
+        # breakpoint()
         out = x.unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size).permute(0,2,3,4,5,1)
         out = out.reshape(x.size(0), self.patch**2 ,-1)
         return out

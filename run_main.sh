@@ -11,7 +11,7 @@ MLP_HIDDEN=384
 
 # 2. Proj & Exp Info
 COMET_PROJ_NAME="ViT_cifar100_20240108"
-EXP_NAME="LOCAL_authors_attenion_${ATTN_METHOD}"
+EXP_NAME="TEST_LOCAL_authors_attenion_${ATTN_METHOD}"
 
 # 3. run
 CUDA_VISIBLE_DEVICES=0 python main.py   --dataset c100 \
